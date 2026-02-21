@@ -4,10 +4,7 @@ import { DashboardHeader } from "./components/dashboard-header";
 import { StatsSummary } from "./components/stats-summary";
 import { RpaCard } from "./components/rpa-card";
 import { EventsTable } from "./components/events-table";
-import {
-  rpaProcesses,
-  eventLogs,
-} from "./components/mock-data";
+import { useRpaData } from "./hooks/useRpaData";
 import type { RpaStatus } from "./components/mock-data";
 
 const filterOptions: {
@@ -45,13 +42,13 @@ const filterActiveBg: Record<string, string> = {
 };
 
 export default function App() {
+  const { processes, events, stats, isLive, lastSync, refresh, isRefreshing } = useRpaData();
   const [activeFilter, setActiveFilter] = useState<
     RpaStatus | "ALL"
   >("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const filteredProcesses = rpaProcesses.filter((p) => {
+  const filteredProcesses = processes.filter((p) => {
     const matchesFilter =
       activeFilter === "ALL" || p.status === activeFilter;
     const matchesSearch =
@@ -66,18 +63,13 @@ export default function App() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1500);
-  };
-
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      <DashboardHeader />
+      <DashboardHeader statsOverview={stats} isLive={isLive} />
 
       <main className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Stats summary */}
-        <StatsSummary />
+        <StatsSummary statsOverview={stats} />
 
         {/* Toolbar */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -96,7 +88,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             {/* Refresh */}
             <button
-              onClick={handleRefresh}
+              onClick={refresh}
               className="flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 font-mono text-[0.7rem] text-muted-foreground hover:text-foreground hover:border-status-processing/30 transition-colors"
             >
               <RefreshCw
@@ -135,7 +127,7 @@ export default function App() {
                 {opt.value !== "ALL" && (
                   <span className="ml-1.5 text-[0.6rem] opacity-60">
                     {
-                      rpaProcesses.filter(
+                      processes.filter(
                         (p) => p.status === opt.value,
                       ).length
                     }
@@ -162,13 +154,13 @@ export default function App() {
         )}
 
         {/* Events Log */}
-        <EventsTable events={eventLogs} />
+        <EventsTable events={events} />
 
         {/* Footer */}
         <footer className="border-t border-border pt-4 pb-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="font-mono text-[0.6rem] text-muted-foreground">
-            $ RPA_MONITOR v2.4.1 // Last sync: 10:44:12 //
-            Session: 4h 22m
+            $ RPA_MONITOR v2.4.1 // Last sync: {lastSync} //
+            {isLive ? ' CONNECTED' : ' OFFLINE (mock data)'}
           </span>
           <span className="font-mono text-[0.6rem] text-muted-foreground">
             {new Date().toLocaleDateString("pt-BR", {

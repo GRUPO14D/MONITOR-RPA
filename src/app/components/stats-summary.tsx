@@ -1,7 +1,18 @@
 import { BarChart3, TrendingUp, AlertTriangle, Zap } from 'lucide-react';
-import { statsOverview } from './mock-data';
 
-export function StatsSummary() {
+interface StatsOverview {
+  totalProcesses: number;
+  running: number;
+  completed: number;
+  errors: number;
+  warnings: number;
+  queued: number;
+  idle: number;
+  totalRecords: number;
+  uptime: string;
+}
+
+export function StatsSummary({ statsOverview }: { statsOverview: StatsOverview }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <SummaryCard

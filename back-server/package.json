@@ -1,0 +1,27 @@
+{
+  "name": "rpa-monitor-server",
+  "version": "2.0.0",
+  "description": "Servidor central de monitoramento de RPAs - Grupo 14D",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch server.ts",
+    "clean": "rm -rf dist"
+  },
+  "keywords": ["rpa", "monitoring", "telemetry", "grupo14d"],
+  "author": "Davi Cassoli",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^5.2.0",
+    "@fastify/cors": "^10.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

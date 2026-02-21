@@ -1,7 +1,18 @@
 import { Activity, Cpu, HardDrive, Wifi } from 'lucide-react';
-import { statsOverview } from './mock-data';
 
-export function DashboardHeader() {
+interface StatsOverview {
+  totalProcesses: number;
+  running: number;
+  completed: number;
+  errors: number;
+  warnings: number;
+  queued: number;
+  idle: number;
+  totalRecords: number;
+  uptime: string;
+}
+
+export function DashboardHeader({ statsOverview, isLive }: { statsOverview: StatsOverview; isLive: boolean }) {
   return (
     <header className="border-b border-border px-4 py-4 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -13,11 +24,11 @@ export function DashboardHeader() {
           </h1>
           <div className="flex items-center gap-2 ml-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-status-success" />
+              <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isLive ? 'bg-status-success' : 'bg-status-warning'} opacity-75`} />
+              <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isLive ? 'bg-status-success' : 'bg-status-warning'}`} />
             </span>
-            <span className="font-mono text-status-success text-[0.75rem] tracking-widest">
-              LIVE
+            <span className={`font-mono text-[0.75rem] tracking-widest ${isLive ? 'text-status-success' : 'text-status-warning'}`}>
+              {isLive ? 'LIVE' : 'OFFLINE'}
             </span>
           </div>
         </div>
