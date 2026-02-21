@@ -1,0 +1,77 @@
+import { BarChart3, TrendingUp, AlertTriangle, Zap } from 'lucide-react';
+import { statsOverview } from './mock-data';
+
+export function StatsSummary() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <SummaryCard
+        icon={<Zap className="h-4 w-4 text-status-success" />}
+        label="Active"
+        value={statsOverview.running}
+        subtext="processes running"
+        accent="border-status-success/20"
+      />
+      <SummaryCard
+        icon={<BarChart3 className="h-4 w-4 text-status-processing" />}
+        label="Records"
+        value={statsOverview.totalRecords}
+        subtext="processed today"
+        accent="border-status-processing/20"
+        formatNumber
+      />
+      <SummaryCard
+        icon={<AlertTriangle className="h-4 w-4 text-status-warning" />}
+        label="Alerts"
+        value={statsOverview.warnings + statsOverview.errors}
+        subtext="need attention"
+        accent="border-status-warning/20"
+      />
+      <SummaryCard
+        icon={<TrendingUp className="h-4 w-4 text-status-automation" />}
+        label="Success"
+        value={98.2}
+        subtext="rate today"
+        accent="border-status-automation/20"
+        suffix="%"
+      />
+    </div>
+  );
+}
+
+function SummaryCard({
+  icon,
+  label,
+  value,
+  subtext,
+  accent,
+  formatNumber,
+  suffix = '',
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  subtext: string;
+  accent: string;
+  formatNumber?: boolean;
+  suffix?: string;
+}) {
+  return (
+    <div
+      className={`rounded-lg border ${accent} bg-card p-4 transition-colors duration-200 hover:bg-secondary/40`}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        {icon}
+        <span className="font-mono text-[0.65rem] tracking-wider text-muted-foreground uppercase">
+          {label}
+        </span>
+      </div>
+      <div className="font-mono text-[1.4rem] text-foreground">
+        {formatNumber ? value.toLocaleString() : value}
+        {suffix && (
+          <span className="text-[0.85rem] text-muted-foreground">{suffix}</span>
+        )}
+      </div>
+      <span className="text-[0.65rem] text-muted-foreground">{subtext}</span>
+    </div>
+  );
+}
