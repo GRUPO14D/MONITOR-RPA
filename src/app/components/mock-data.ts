@@ -135,7 +135,7 @@ export const rpaProcesses: RpaProcess[] = [
     id: 'RPA-008',
     name: 'BACKUP_CONTABIL',
     status: 'IDLE',
-    company: 'All Companies',
+    company: 'Todas as Empresas',
     machine: 'SRV-RPA-04',
     startTime: '--:--:--',
     duration: '--:--',
@@ -155,7 +155,7 @@ export const eventLogs: EventLog[] = [
     processName: 'NF_EMISSAO_LOTE',
     status: 'RUNNING',
     message: 'Processando lote #47 - 18 notas emitidas',
-    details: 'Batch 47/67 | ETA: ~45min',
+    details: 'Lote 47/67 | Previsão: ~45min',
   },
   {
     id: 'EVT-002',
@@ -179,7 +179,7 @@ export const eventLogs: EventLog[] = [
     processName: 'CERTIDAO_CONSULTA',
     status: 'WARNING',
     message: 'Timeout na consulta CND Federal',
-    details: 'Retry 3/5 | Portal RFB instavel',
+    details: 'Tentativa 3/5 | Portal RFB instável',
   },
   {
     id: 'EVT-005',

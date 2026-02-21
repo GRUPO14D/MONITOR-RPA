@@ -17,31 +17,31 @@ export function StatsSummary({ statsOverview }: { statsOverview: StatsOverview }
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <SummaryCard
         icon={<Zap className="h-4 w-4 text-status-success" />}
-        label="Active"
+        label="Ativos"
         value={statsOverview.running}
-        subtext="processes running"
+        subtext="processos executando"
         accent="border-status-success/20"
       />
       <SummaryCard
         icon={<BarChart3 className="h-4 w-4 text-status-processing" />}
-        label="Records"
+        label="Registros"
         value={statsOverview.totalRecords}
-        subtext="processed today"
+        subtext="processados hoje"
         accent="border-status-processing/20"
         formatNumber
       />
       <SummaryCard
         icon={<AlertTriangle className="h-4 w-4 text-status-warning" />}
-        label="Alerts"
+        label="Alertas"
         value={statsOverview.warnings + statsOverview.errors}
-        subtext="need attention"
+        subtext="precisam de atenção"
         accent="border-status-warning/20"
       />
       <SummaryCard
         icon={<TrendingUp className="h-4 w-4 text-status-automation" />}
-        label="Success"
+        label="Sucesso"
         value={98.2}
-        subtext="rate today"
+        subtext="taxa de hoje"
         accent="border-status-automation/20"
         suffix="%"
       />

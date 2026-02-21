@@ -42,6 +42,15 @@ const statusConfig: Record<
   },
 };
 
+const statusLabel: Record<RpaStatus, string> = {
+  RUNNING: 'EXECUTANDO',
+  COMPLETED: 'CONCLUÍDO',
+  ERROR: 'ERRO',
+  WARNING: 'ALERTA',
+  QUEUED: 'NA FILA',
+  IDLE: 'INATIVO',
+};
+
 export function StatusBadge({ status }: { status: RpaStatus }) {
   const config = statusConfig[status];
 
@@ -61,7 +70,7 @@ export function StatusBadge({ status }: { status: RpaStatus }) {
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-error" />
         </span>
       )}
-      {status}
+      {statusLabel[status]}
     </span>
   );
 }
