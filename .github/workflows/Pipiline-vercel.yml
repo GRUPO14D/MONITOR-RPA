@@ -21,6 +21,8 @@ jobs:
               run: npm ci
             - name: Install Vercel CLI
               run: npm install --global vercel@latest
+            - name: vercel login
+              run: vercel login --token=${{ env.VERCEL_TOKEN }}
             - name: Pull Vercel env
               run: vercel pull --yes --environment=preview --token=${{ env.VERCEL_TOKEN }}
             - name: Build
