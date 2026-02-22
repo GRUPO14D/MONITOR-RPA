@@ -78,6 +78,7 @@ export default function App() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
+              aria-label="Buscar processos, empresas ou IDs"
               placeholder="Buscar processos, empresas, IDs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

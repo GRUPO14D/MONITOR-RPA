@@ -1,16 +1,5 @@
 import { BarChart3, TrendingUp, AlertTriangle, Zap } from 'lucide-react';
-
-interface StatsOverview {
-  totalProcesses: number;
-  running: number;
-  completed: number;
-  errors: number;
-  warnings: number;
-  queued: number;
-  idle: number;
-  totalRecords: number;
-  uptime: string;
-}
+import type { StatsOverview } from './mock-data';
 
 export function StatsSummary({ statsOverview }: { statsOverview: StatsOverview }) {
   return (

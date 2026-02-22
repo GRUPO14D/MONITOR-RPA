@@ -1,16 +1,5 @@
 import { Activity, Cpu, HardDrive, Wifi } from 'lucide-react';
-
-interface StatsOverview {
-  totalProcesses: number;
-  running: number;
-  completed: number;
-  errors: number;
-  warnings: number;
-  queued: number;
-  idle: number;
-  totalRecords: number;
-  uptime: string;
-}
+import type { StatsOverview } from './mock-data';
 
 export function DashboardHeader({ statsOverview, isLive }: { statsOverview: StatsOverview; isLive: boolean }) {
   return (
@@ -22,8 +11,8 @@ export function DashboardHeader({ statsOverview, isLive }: { statsOverview: Stat
           <h1 className="font-mono tracking-tight text-foreground">
             RPA_MONITOR
           </h1>
-          <div className="flex items-center gap-2 ml-2">
-            <span className="relative flex h-2.5 w-2.5">
+          <div className="flex items-center gap-2 ml-2" aria-live="polite">
+            <span className="relative flex h-2.5 w-2.5" aria-hidden="true">
               <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${isLive ? 'bg-status-success' : 'bg-status-warning'} opacity-75`} />
               <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${isLive ? 'bg-status-success' : 'bg-status-warning'}`} />
             </span>
