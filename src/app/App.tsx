@@ -11,13 +11,13 @@ const filterOptions: {
   label: string;
   value: RpaStatus | "ALL";
 }[] = [
-  { label: "ALL", value: "ALL" },
-  { label: "RUNNING", value: "RUNNING" },
-  { label: "COMPLETED", value: "COMPLETED" },
-  { label: "ERROR", value: "ERROR" },
-  { label: "WARNING", value: "WARNING" },
-  { label: "QUEUED", value: "QUEUED" },
-  { label: "IDLE", value: "IDLE" },
+  { label: "TODOS", value: "ALL" },
+  { label: "EXECUTANDO", value: "RUNNING" },
+  { label: "CONCLUÍDO", value: "COMPLETED" },
+  { label: "ERRO", value: "ERROR" },
+  { label: "ALERTA", value: "WARNING" },
+  { label: "NA FILA", value: "QUEUED" },
+  { label: "INATIVO", value: "IDLE" },
 ];
 
 const filterColors: Record<string, string> = {
@@ -68,17 +68,18 @@ export default function App() {
       <DashboardHeader statsOverview={stats} isLive={isLive} />
 
       <main className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
-        {/* Stats summary */}
+        {/* Resumo de estatísticas */}
         <StatsSummary statsOverview={stats} />
 
-        {/* Toolbar */}
+        {/* Barra de ferramentas */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {/* Search */}
+          {/* Busca */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search processes, companies, IDs..."
+              aria-label="Buscar processos, empresas ou IDs"
+              placeholder="Buscar processos, empresas, IDs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-md border border-border bg-secondary pl-9 pr-4 py-2 font-mono text-[0.75rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-status-processing/50 focus:ring-1 focus:ring-status-processing/20 transition-colors"
@@ -86,7 +87,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Refresh */}
+            {/* Atualizar */}
             <button
               onClick={refresh}
               className="flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 font-mono text-[0.7rem] text-muted-foreground hover:text-foreground hover:border-status-processing/30 transition-colors"
@@ -94,20 +95,20 @@ export default function App() {
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
               />
-              REFRESH
+              ATUALIZAR
             </button>
 
-            {/* Filter indicator */}
+            {/* Indicador de filtro */}
             <div className="flex items-center gap-1.5 text-muted-foreground">
               <Filter className="h-3.5 w-3.5" />
               <span className="font-mono text-[0.65rem] hidden sm:inline">
-                FILTER
+                FILTRO
               </span>
             </div>
           </div>
         </div>
 
-        {/* Filter pills */}
+        {/* Pills de filtro */}
         <div className="flex flex-wrap gap-2">
           {filterOptions.map((opt) => {
             const isActive = activeFilter === opt.value;
@@ -138,7 +139,7 @@ export default function App() {
           })}
         </div>
 
-        {/* RPA Cards Grid */}
+        {/* Grid de Cards RPA */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredProcesses.map((process) => (
             <RpaCard key={process.id} process={process} />
@@ -148,19 +149,19 @@ export default function App() {
         {filteredProcesses.length === 0 && (
           <div className="text-center py-12">
             <p className="font-mono text-[0.8rem] text-muted-foreground">
-              No processes match the current filter.
+              Nenhum processo encontrado para o filtro atual.
             </p>
           </div>
         )}
 
-        {/* Events Log */}
+        {/* Log de Eventos */}
         <EventsTable events={events} />
 
-        {/* Footer */}
+        {/* Rodapé */}
         <footer className="border-t border-border pt-4 pb-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span className="font-mono text-[0.6rem] text-muted-foreground">
-            $ RPA_MONITOR v2.4.1 // Last sync: {lastSync} //
-            {isLive ? ' CONNECTED' : ' OFFLINE (mock data)'}
+            $ RPA_MONITOR v2.4.1 // Última sinc: {lastSync} //
+            {isLive ? ' CONECTADO' : ' OFFLINE (dados simulados)'}
           </span>
           <span className="font-mono text-[0.6rem] text-muted-foreground">
             {new Date().toLocaleDateString("pt-BR", {

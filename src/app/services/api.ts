@@ -63,7 +63,6 @@ function formatDuration(seconds?: number): string {
 
 function mapRpa(rpa: BackendRPAStatus, index: number): RpaProcess {
   const status = mapStatus(rpa.status);
-  const isActive = status === 'RUNNING';
   return {
     id: `RPA-${String(index + 1).padStart(3, '0')}`,
     name: rpa.rpa,
@@ -76,8 +75,8 @@ function mapRpa(rpa: BackendRPAStatus, index: number): RpaProcess {
     totalRecords: rpa.detalhes?.totalRecords ?? 0,
     description: rpa.detalhes?.description ?? rpa.event,
     lastUpdate: new Date(rpa.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-    cpu: isActive ? (rpa.detalhes?.cpu ?? Math.floor(Math.random() * 50 + 10)) : 0,
-    memory: isActive ? (rpa.detalhes?.memory ?? Math.floor(Math.random() * 40 + 20)) : 0,
+    cpu: rpa.detalhes?.cpu ?? 0,
+    memory: rpa.detalhes?.memory ?? 0,
   };
 }
 

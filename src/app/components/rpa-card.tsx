@@ -20,11 +20,11 @@ export function RpaCard({ process }: { process: RpaProcess }) {
     <div
       className={`group relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 ${hoverBorder} ${glowEffect}`}
     >
-      {/* Status bar top */}
+      {/* Barra de status superior */}
       <div className={`h-1 w-full ${barColor}`} />
 
       <div className="p-4">
-        {/* Header row: ID + Status */}
+        {/* Cabeçalho: ID + Status */}
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0">
             <span className="font-mono text-[0.65rem] text-muted-foreground block">
@@ -37,31 +37,31 @@ export function RpaCard({ process }: { process: RpaProcess }) {
           <StatusBadge status={process.status} />
         </div>
 
-        {/* Description */}
+        {/* Descrição */}
         <p className="text-[0.75rem] text-muted-foreground mb-4 line-clamp-1">
           {process.description}
         </p>
 
-        {/* Metrics grid */}
+        {/* Grid de métricas */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <MetricItem
             icon={<Clock className="h-3 w-3" />}
-            label="Duration"
+            label="Duração"
             value={process.duration}
           />
           <MetricItem
             icon={<Database className="h-3 w-3" />}
-            label="Records"
+            label="Registros"
             value={`${process.records.toLocaleString()}/${process.totalRecords.toLocaleString()}`}
           />
         </div>
 
-        {/* Progress bar (only for active processes) */}
+        {/* Barra de progresso (apenas para processos ativos) */}
         {process.totalRecords > 0 && (
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
               <span className="font-mono text-[0.6rem] text-muted-foreground">
-                PROGRESS
+                PROGRESSO
               </span>
               <span className="font-mono text-[0.6rem] text-foreground">
                 {progress}%
@@ -76,7 +76,7 @@ export function RpaCard({ process }: { process: RpaProcess }) {
           </div>
         )}
 
-        {/* Resource usage (only for running) */}
+        {/* Uso de recursos (apenas para executando) */}
         {(process.status === 'RUNNING' || process.status === 'WARNING') && (
           <div className="grid grid-cols-2 gap-3 mb-4">
             <ResourceBar
@@ -92,7 +92,7 @@ export function RpaCard({ process }: { process: RpaProcess }) {
           </div>
         )}
 
-        {/* Footer details */}
+        {/* Detalhes do rodapé */}
         <div className="border-t border-border pt-3 space-y-1.5">
           <DetailRow
             icon={<Building2 className="h-3 w-3" />}
@@ -104,7 +104,7 @@ export function RpaCard({ process }: { process: RpaProcess }) {
           />
           <div className="flex items-center justify-between">
             <span className="font-mono text-[0.6rem] text-muted-foreground">
-              Last update
+              Última atualização
             </span>
             <span className="font-mono text-[0.65rem] text-muted-foreground">
               {process.lastUpdate}

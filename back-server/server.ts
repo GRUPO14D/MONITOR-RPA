@@ -145,19 +145,36 @@ server.register(import('@fastify/cors'), {
 // ------------------------------------------------------------------ //
 
 // POST /events - Recebe eventos dos RPAs
-server.post('/events', async (request: FastifyRequest, reply: FastifyReply) => {
+const eventSchema = {
+  body: {
+    type: 'object',
+    required: ['rpa', 'event', 'session_id', 'machine', 'empresa', 'timestamp'],
+    properties: {
+      rpa: { type: 'string' },
+      event: { type: 'string' },
+      session_id: { type: 'string' },
+      machine: { type: 'string' },
+      empresa: { type: 'string' },
+      timestamp: { type: 'string' },
+      status: { type: 'string' },
+      duracao_segundos: { type: 'number' },
+    },
+  },
+};
+
+server.post('/events', { schema: eventSchema }, async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const payload = request.body as TelemetryEvent;
     payload.received_at = new Date().toISOString();
-    
+
     await salvarEvento(payload);
     atualizarEstado(payload);
-    
+
     return { ok: true };
   } catch (error) {
-    return reply.status(400).send({ 
-      ok: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return reply.status(400).send({
+      ok: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

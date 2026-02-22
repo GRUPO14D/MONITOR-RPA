@@ -42,6 +42,15 @@ const statusConfig: Record<
   },
 };
 
+const statusLabel: Record<RpaStatus, string> = {
+  RUNNING: 'EXECUTANDO',
+  COMPLETED: 'CONCLUÍDO',
+  ERROR: 'ERRO',
+  WARNING: 'ALERTA',
+  QUEUED: 'NA FILA',
+  IDLE: 'INATIVO',
+};
+
 export function StatusBadge({ status }: { status: RpaStatus }) {
   const config = statusConfig[status];
 
@@ -50,18 +59,18 @@ export function StatusBadge({ status }: { status: RpaStatus }) {
       className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 font-mono text-[0.65rem] tracking-widest border ${config.bg} ${config.text} ${config.border} ${config.glow}`}
     >
       {status === 'RUNNING' && (
-        <span className="relative flex h-1.5 w-1.5">
+        <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-success" />
         </span>
       )}
       {status === 'ERROR' && (
-        <span className="relative flex h-1.5 w-1.5">
+        <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-error opacity-75" />
           <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-error" />
         </span>
       )}
-      {status}
+      {statusLabel[status]}
     </span>
   );
 }

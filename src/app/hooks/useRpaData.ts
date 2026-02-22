@@ -5,19 +5,8 @@ import {
   eventLogs as mockEvents,
   type RpaProcess,
   type EventLog,
+  type StatsOverview,
 } from '../components/mock-data';
-
-interface StatsOverview {
-  totalProcesses: number;
-  running: number;
-  completed: number;
-  errors: number;
-  warnings: number;
-  queued: number;
-  idle: number;
-  totalRecords: number;
-  uptime: string;
-}
 
 interface RpaData {
   processes: RpaProcess[];

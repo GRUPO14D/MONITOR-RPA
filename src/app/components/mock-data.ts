@@ -25,6 +25,18 @@ export interface EventLog {
   details: string;
 }
 
+export interface StatsOverview {
+  totalProcesses: number;
+  running: number;
+  completed: number;
+  errors: number;
+  warnings: number;
+  queued: number;
+  idle: number;
+  totalRecords: number;
+  uptime: string;
+}
+
 export const rpaProcesses: RpaProcess[] = [
   {
     id: 'RPA-001',
@@ -135,7 +147,7 @@ export const rpaProcesses: RpaProcess[] = [
     id: 'RPA-008',
     name: 'BACKUP_CONTABIL',
     status: 'IDLE',
-    company: 'All Companies',
+    company: 'Todas as Empresas',
     machine: 'SRV-RPA-04',
     startTime: '--:--:--',
     duration: '--:--',
@@ -155,7 +167,7 @@ export const eventLogs: EventLog[] = [
     processName: 'NF_EMISSAO_LOTE',
     status: 'RUNNING',
     message: 'Processando lote #47 - 18 notas emitidas',
-    details: 'Batch 47/67 | ETA: ~45min',
+    details: 'Lote 47/67 | Previsão: ~45min',
   },
   {
     id: 'EVT-002',
@@ -179,7 +191,7 @@ export const eventLogs: EventLog[] = [
     processName: 'CERTIDAO_CONSULTA',
     status: 'WARNING',
     message: 'Timeout na consulta CND Federal',
-    details: 'Retry 3/5 | Portal RFB instavel',
+    details: 'Tentativa 3/5 | Portal RFB instável',
   },
   {
     id: 'EVT-005',
@@ -230,15 +242,3 @@ export const eventLogs: EventLog[] = [
     details: 'CNPJ ***789/0001-12 | Competencia: Jan/2026',
   },
 ];
-
-export const statsOverview = {
-  totalProcesses: 8,
-  running: 3,
-  completed: 1,
-  errors: 1,
-  warnings: 1,
-  queued: 1,
-  idle: 1,
-  totalRecords: 6928,
-  uptime: '99.7%',
-};
