@@ -1,6 +1,14 @@
 import { Terminal } from 'lucide-react';
 import type { EventLog } from './mock-data';
 import { StatusDot } from './status-badge';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from './ui/table';
 
 export function EventsTable({ events }: { events: EventLog[] }) {
   return (
@@ -17,37 +25,49 @@ export function EventsTable({ events }: { events: EventLog[] }) {
       </div>
 
       {/* Conteúdo da tabela */}
-      <div className="divide-y divide-border">
-        {events.map((event) => (
-          <div
-            key={event.id}
-            className="flex items-start gap-3 px-4 py-3 transition-colors duration-200 hover:bg-secondary/20"
-          >
-            {/* Indicador de status */}
-            <div className="mt-1.5 shrink-0">
-              <StatusDot status={event.status} />
-            </div>
-
-            {/* Conteúdo */}
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-1">
-                <span className="font-mono text-[0.7rem] text-muted-foreground">
-                  {event.timestamp}
-                </span>
-                <span className="font-mono text-[0.75rem] text-foreground">
-                  {event.processName}
-                </span>
-              </div>
-              <p className="text-[0.75rem] text-foreground/80 mb-0.5">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-6 font-mono text-[0.6rem] tracking-wider text-muted-foreground" />
+            <TableHead className="font-mono text-[0.6rem] tracking-wider text-muted-foreground">
+              HORÁRIO
+            </TableHead>
+            <TableHead className="font-mono text-[0.6rem] tracking-wider text-muted-foreground">
+              PROCESSO
+            </TableHead>
+            <TableHead className="font-mono text-[0.6rem] tracking-wider text-muted-foreground hidden sm:table-cell">
+              MENSAGEM
+            </TableHead>
+            <TableHead className="font-mono text-[0.6rem] tracking-wider text-muted-foreground hidden lg:table-cell">
+              DETALHES
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {events.map((event) => (
+            <TableRow
+              key={event.id}
+              className="transition-colors duration-200 hover:bg-secondary/20"
+            >
+              <TableCell className="w-6">
+                <StatusDot status={event.status} />
+              </TableCell>
+              <TableCell className="font-mono text-[0.7rem] text-muted-foreground">
+                {event.timestamp}
+              </TableCell>
+              <TableCell className="font-mono text-[0.75rem] text-foreground">
+                {event.processName}
+              </TableCell>
+              <TableCell className="text-[0.75rem] text-foreground/80 hidden sm:table-cell">
                 {event.message}
-              </p>
-              <p className="font-mono text-[0.65rem] text-muted-foreground">
+              </TableCell>
+              <TableCell className="font-mono text-[0.65rem] text-muted-foreground hidden lg:table-cell">
                 {event.details}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

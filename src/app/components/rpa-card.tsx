@@ -6,6 +6,7 @@ import {
   getStatusHoverBorder,
   getStatusGlow,
 } from './status-badge';
+import { Card, CardHeader, CardContent, CardFooter, CardAction, CardTitle, CardDescription } from './ui/card';
 
 export function RpaCard({ process }: { process: RpaProcess }) {
   const barColor = getStatusBarColor(process.status);
@@ -17,33 +18,32 @@ export function RpaCard({ process }: { process: RpaProcess }) {
       : 0;
 
   return (
-    <div
-      className={`group relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-300 hover:-translate-y-0.5 ${hoverBorder} ${glowEffect}`}
+    <Card
+      className={`group relative overflow-hidden rounded-lg gap-0 transition-all duration-300 hover:-translate-y-0.5 ${hoverBorder} ${glowEffect}`}
     >
       {/* Barra de status superior */}
       <div className={`h-1 w-full ${barColor}`} />
 
-      <div className="p-4">
-        {/* Cabeçalho: ID + Status */}
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="min-w-0">
-            <span className="font-mono text-[0.65rem] text-muted-foreground block">
-              {process.id}
-            </span>
-            <h3 className="font-mono text-[0.9rem] text-foreground tracking-tight truncate">
-              {process.name}
-            </h3>
-          </div>
-          <StatusBadge status={process.status} />
+      <CardHeader className="p-4 pb-0 gap-0">
+        <div className="min-w-0">
+          <span className="font-mono text-[0.65rem] text-muted-foreground block">
+            {process.id}
+          </span>
+          <CardTitle className="font-mono text-[0.9rem] text-foreground tracking-tight truncate">
+            {process.name}
+          </CardTitle>
         </div>
-
-        {/* Descrição */}
-        <p className="text-[0.75rem] text-muted-foreground mb-4 line-clamp-1">
+        <CardAction>
+          <StatusBadge status={process.status} />
+        </CardAction>
+        <CardDescription className="text-[0.75rem] line-clamp-1 mt-1">
           {process.description}
-        </p>
+        </CardDescription>
+      </CardHeader>
 
+      <CardContent className="p-4 pt-3 pb-0 space-y-4">
         {/* Grid de métricas */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-3">
           <MetricItem
             icon={<Clock className="h-3 w-3" />}
             label="Duração"
@@ -58,7 +58,7 @@ export function RpaCard({ process }: { process: RpaProcess }) {
 
         {/* Barra de progresso (apenas para processos ativos) */}
         {process.totalRecords > 0 && (
-          <div className="mb-4">
+          <div>
             <div className="flex justify-between items-center mb-1">
               <span className="font-mono text-[0.6rem] text-muted-foreground">
                 PROGRESSO
@@ -78,7 +78,7 @@ export function RpaCard({ process }: { process: RpaProcess }) {
 
         {/* Uso de recursos (apenas para executando) */}
         {(process.status === 'RUNNING' || process.status === 'WARNING') && (
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-2 gap-3">
             <ResourceBar
               icon={<Cpu className="h-3 w-3" />}
               label="CPU"
@@ -91,28 +91,27 @@ export function RpaCard({ process }: { process: RpaProcess }) {
             />
           </div>
         )}
+      </CardContent>
 
-        {/* Detalhes do rodapé */}
-        <div className="border-t border-border pt-3 space-y-1.5">
-          <DetailRow
-            icon={<Building2 className="h-3 w-3" />}
-            value={process.company}
-          />
-          <DetailRow
-            icon={<Monitor className="h-3 w-3" />}
-            value={process.machine}
-          />
-          <div className="flex items-center justify-between">
-            <span className="font-mono text-[0.6rem] text-muted-foreground">
-              Última atualização
-            </span>
-            <span className="font-mono text-[0.65rem] text-muted-foreground">
-              {process.lastUpdate}
-            </span>
-          </div>
+      <CardFooter className="p-4 pt-3 pb-4 flex-col items-stretch border-t border-border gap-1.5">
+        <DetailRow
+          icon={<Building2 className="h-3 w-3" />}
+          value={process.company}
+        />
+        <DetailRow
+          icon={<Monitor className="h-3 w-3" />}
+          value={process.machine}
+        />
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[0.6rem] text-muted-foreground">
+            Última atualização
+          </span>
+          <span className="font-mono text-[0.65rem] text-muted-foreground">
+            {process.lastUpdate}
+          </span>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 
