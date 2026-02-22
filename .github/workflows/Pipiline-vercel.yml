@@ -25,4 +25,4 @@ jobs:
             - name: Build
               run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
             - name: Deploy to Preview
-              run: vercel deploy --prebuild --token=${{ secrets.VERCEL_TOKEN }}
+              run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }}
