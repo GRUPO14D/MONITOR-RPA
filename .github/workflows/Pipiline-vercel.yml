@@ -2,7 +2,6 @@ name: Vercel Pipeline
 env: 
     VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
     VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-    VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
 on:
     push:
@@ -21,11 +20,9 @@ jobs:
               run: npm ci
             - name: Install Vercel CLI
               run: npm install --global vercel@latest
-            - name: vercel login
-              run: vercel login --token=${{ env.VERCEL_TOKEN }}
             - name: Pull Vercel env
-              run: vercel pull --yes --environment=preview --token=${{ env.VERCEL_TOKEN }}
+              run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
             - name: Build
-              run: vercel build --token=${{ env.VERCEL_TOKEN }}
+              run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
             - name: Deploy to Preview
-              run: vercel deploy --prebuild --token=${{ env.VERCEL_TOKEN }}
+              run: vercel deploy --prebuild --token=${{ secrets.VERCEL_TOKEN }}
