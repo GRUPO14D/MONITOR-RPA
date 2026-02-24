@@ -1,18 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchRpaStatus, fetchEvents } from '../services/api';
-import {
-  rpaProcesses as mockProcesses,
-  eventLogs as mockEvents,
-  type RpaProcess,
-  type EventLog,
-  type StatsOverview,
-} from '../components/mock-data';
+import type { RpaProcess, EventLog, StatsOverview } from '../types/rpa';
 
 interface RpaData {
   processes: RpaProcess[];
   events: EventLog[];
   stats: StatsOverview;
   isLive: boolean;
+  isLoading: boolean;
   lastSync: string;
   refresh: () => void;
   isRefreshing: boolean;
@@ -31,7 +26,7 @@ function computeStats(processes: RpaProcess[]): StatsOverview {
 
   const successRate = processes.length > 0
     ? ((completed + running) / processes.length * 100).toFixed(1)
-    : '100.0';
+    : '0.0';
 
   return {
     totalProcesses: processes.length,
@@ -47,9 +42,10 @@ function computeStats(processes: RpaProcess[]): StatsOverview {
 }
 
 export function useRpaData(): RpaData {
-  const [processes, setProcesses] = useState<RpaProcess[]>(mockProcesses);
-  const [events, setEvents] = useState<EventLog[]>(mockEvents);
+  const [processes, setProcesses] = useState<RpaProcess[]>([]);
+  const [events, setEvents] = useState<EventLog[]>([]);
   const [isLive, setIsLive] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastSync, setLastSync] = useState('--:--:--');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -61,13 +57,9 @@ export function useRpaData(): RpaData {
         fetchEvents(24),
       ]);
 
-      if (newProcesses.length > 0) {
-        setProcesses(newProcesses);
-        setIsLive(true);
-      }
-      if (newEvents.length > 0) {
-        setEvents(newEvents);
-      }
+      setProcesses(newProcesses);
+      setEvents(newEvents);
+      setIsLive(true);
       setLastSync(
         new Date().toLocaleTimeString('pt-BR', {
           hour: '2-digit',
@@ -76,8 +68,10 @@ export function useRpaData(): RpaData {
         }),
       );
     } catch {
-      // Backend unreachable — keep current data (mock or last successful fetch)
+      // Backend unreachable — keep current data
       setIsLive(false);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -99,5 +93,5 @@ export function useRpaData(): RpaData {
 
   const stats = computeStats(processes);
 
-  return { processes, events, stats, isLive, lastSync, refresh, isRefreshing };
+  return { processes, events, stats, isLive, isLoading, lastSync, refresh, isRefreshing };
 }

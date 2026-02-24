@@ -1,4 +1,4 @@
-import type { RpaStatus } from './mock-data';
+import type { RpaStatus } from '../types/rpa';
 import { Badge } from './ui/badge';
 
 const statusStyles: Record<

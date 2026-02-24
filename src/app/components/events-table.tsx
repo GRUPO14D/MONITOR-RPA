@@ -1,5 +1,5 @@
 import { Terminal } from 'lucide-react';
-import type { EventLog } from './mock-data';
+import type { EventLog } from '../types/rpa';
 import { StatusDot } from './status-badge';
 import {
   Table,

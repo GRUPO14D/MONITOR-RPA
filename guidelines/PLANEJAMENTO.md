@@ -1,78 +1,148 @@
 # PLANEJAMENTO - MONITOR-RPA
 
-Este documento detalha o plano de ação para a evolução técnica do Monitor RPA, focando em CI/CD, Estabilidade da API e Transição para Dados Reais.
+Este documento detalha o plano de acao para a evolucao tecnica do Monitor RPA, focando em CI/CD, Estabilidade da API, Transicao para Dados Reais e Acessibilidade.
 
 ---
 
-## 🚀 FASE 1: CI/CD e Infraestrutura (Vercel)
+## FASE 1: CI/CD e Infraestrutura (Vercel)
 
-### 1.1 Configuração de Produção
-*   **Ação:** Alterar o pipeline do GitHub Actions para disparar deploys apenas na branch `main`.
-*   **Arquivo:** `.github/workflows/Pipiline-vercel.yml`
-*   **Mudança:** Substituir `branches-ignore: [main]` por `branches: [main]`.
-*   **Segurança:** Configurar o repositório no GitHub para "Branch Protection" na `main`, exigindo revisões e aprovação de status checks antes do merge.
+**Arquivo:** `.github/workflows/Pipiline-vercel.yml`
 
-### 1.2 Renomeação do Projeto
-*   **Ação:** Alterar o nome do projeto na Vercel de `rpa-monitor-design-dashboard` para `MONITOR-RPA`.
-*   **Arquivo:** `vercel.json` (Já atualizado localmente, mas requer sincronização no Dashboard da Vercel).
-*   **Impacto:** Atualizar as variáveis de ambiente `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` nos segredos do GitHub para refletir o novo projeto.
+### 1.1 Branch trigger (linhas 7-9)
 
----
+Trocar `branches-ignore: [main]` por `branches: [main]` para que o deploy ocorra **somente** na branch `main`.
 
-## 📡 FASE 2: API e Telemetria (Testes e Evolução)
+### 1.2 Environment de producao (linha 24)
 
-### 2.1 Validação Técnica (Amanhã)
-*   **Testes Manuais:** Realizar chamadas `GET` e `POST` (PUT não é utilizado no contrato atual) para `/api/status` e `/api/events`.
-*   **Ferramenta:** Utilizar Postman ou `curl` para simular o payload do RPA:
-    ```json
-    {
-      "rpa": "TESTE_01",
-      "event": "rpa_started",
-      "session_id": "ABC-123",
-      "machine": "VM-DEV-01",
-      "empresa": "CLIENTE_X",
-      "timestamp": "2024-03-20T10:00:00Z"
-    }
-    ```
+Trocar `--environment=preview` por `--environment=production`.
 
-### 2.2 Evolução do Contrato de Dados
-*   **Análise de Getters:** Observar se os RPAs precisam enviar métricas adicionais (ex: uso de disco, latência de rede) em pontos estratégicos do fluxo de automação.
-*   **Ajuste no Backend:** Se novos campos forem necessários, atualizar as interfaces `TelemetryEvent` e `RPAStatus` em `api/rpa.ts` e `back-server/server.ts`.
+### 1.3 Deploy em producao (linhas 25-28)
+
+Adicionar flag `--prod` ao build e `--prebuilt --prod` ao deploy:
+
+```yaml
+- name: Build
+  run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+- name: Deploy to Production
+  run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+```
+
+### 1.4 Acoes manuais do usuario
+
+- Renomear projeto no Dashboard Vercel para `MONITOR-RPA`
+- Verificar que `VERCEL_PROJECT_ID` no GitHub Secrets esta correto
+- Configurar Branch Protection na `main` (revisoes + status checks)
 
 ---
 
-## 💻 FASE 3: Frontend - Transição para Dados Reais
+## FASE 2: API e Telemetria (Testes Manuais)
 
-### 3.1 Limpeza de Mock Data
-*   **Refatoração de Tipos:** Criar `src/app/types/rpa.ts` para abrigar as interfaces `RpaProcess`, `EventLog` e `RpaStatus`, removendo-as de `mock-data.ts`.
-*   **Remoção de Imports:** Localizar e remover todos os imports de `mockData` nos componentes (8 arquivos identificados).
+Sem alteracoes de codigo. O usuario deve testar manualmente:
 
-### 3.2 Ajuste do Hook `useRpaData`
-*   **Estado Inicial:** Alterar o estado inicial de `processes` e `events` para arrays vazios `[]`.
-*   **Fluxo de Sync:** Garantir que a flag `isLive` reflita corretamente o status da conexão com a API real.
-*   **Fallback Seguro:** Manter uma lógica de erro amigável caso a API esteja inacessível.
+- `GET /api/status` — deve retornar `{ rpas: [...], updated_at: "..." }`
+- `GET /api/events?horas=24` — deve retornar `{ events: [...] }`
+- `POST /api/events` — payload de teste:
+
+```json
+{
+  "rpa": "TESTE_01",
+  "event": "rpa_started",
+  "session_id": "ABC-123",
+  "machine": "VM-DEV-01",
+  "empresa": "CLIENTE_X",
+  "timestamp": "2024-03-20T10:00:00Z"
+}
+```
+
+Se o contrato precisar evoluir, os arquivos relevantes sao:
+
+- `api/rpa.ts` (serverless Vercel)
+- `back-server/server.ts` (Fastify local)
+- `src/app/services/api.ts` (mappers frontend)
+
+---
+
+## FASE 3: Frontend - Transicao para Dados Reais
+
+### 3.1 Extrair tipos para arquivo dedicado
+
+**Criar:** `src/app/types/rpa.ts`
+
+Mover de `src/app/components/mock-data.ts` as definicoes:
+
+- `RpaStatus` (union type)
+- `RpaProcess` (interface, 17 propriedades)
+- `EventLog` (interface, 6 propriedades)
+- `StatsOverview` (interface, 9 propriedades)
+
+### 3.2 Atualizar imports em 8 arquivos
+
+| Arquivo | Import antigo | Import novo |
+|:--------|:-------------|:------------|
+| `src/app/App.tsx` | `from "./components/mock-data"` | `from "./types/rpa"` |
+| `src/app/hooks/useRpaData.ts` | `from '../components/mock-data'` | `from '../types/rpa'` (somente types) |
+| `src/app/components/dashboard-header.tsx` | `from './mock-data'` | `from '../types/rpa'` |
+| `src/app/components/rpa-card.tsx` | `from './mock-data'` | `from '../types/rpa'` |
+| `src/app/components/status-badge.tsx` | `from './mock-data'` | `from '../types/rpa'` |
+| `src/app/components/stats-summary.tsx` | `from './mock-data'` | `from '../types/rpa'` |
+| `src/app/components/events-table.tsx` | `from './mock-data'` | `from '../types/rpa'` |
+| `src/app/services/api.ts` | `from '../components/mock-data'` | `from '../types/rpa'` |
+
+### 3.3 Deletar `src/app/components/mock-data.ts`
+
+### 3.4 Refatorar `useRpaData.ts`
+
+- Remover imports de `mockProcesses` e `mockEvents`
+- Estado inicial vazio: `useState<RpaProcess[]>([])` e `useState<EventLog[]>([])`
+- Adicionar `isLoading: boolean` ao estado (inicia `true`, vira `false` apos primeiro fetch via `finally`)
+- Retornar `isLoading` na interface `RpaData`
 
 ---
 
-## ♿ FASE 4: Acessibilidade e Qualidade UI
+## FASE 4: Acessibilidade e Qualidade UI
 
-### 4.1 Estratégia de Acessibilidade
-*   **Anúncios Dinâmicos:** Usar `aria-live` para anunciar quando um RPA muda de status (ex: de "IDLE" para "RUNNING").
-*   **Skeleton Screens:** Implementar estados de carregamento (Skeletons) enquanto os dados reais estão sendo buscados pela primeira vez, evitando saltos de layout (CLS).
-*   **Teclado:** Garantir que as Pills de filtro sejam navegáveis via Tab e ativáveis via Space/Enter.
+### 4.1 Skeleton screens (`App.tsx`)
+
+- Destruturar `isLoading` de `useRpaData()`
+- Quando `isLoading === true`, renderizar skeletons no lugar de:
+  - `StatsSummary` (4 cards skeleton)
+  - Grid de `RpaCard` (4 cards skeleton)
+  - `EventsTable` (linhas skeleton)
+- Usar componente `Skeleton` existente em `src/app/components/ui/skeleton.tsx`
+
+### 4.2 aria-live para mudancas de status
+
+- Adicionar `aria-live="polite"` no grid de cards (linha 149 do `App.tsx`)
+
+### 4.3 Keyboard navigation nos filtros
+
+- Adicionar `role="toolbar"` e `aria-label="Filtros de status"` no wrapper dos pills (linha 116)
+- Adicionar `aria-pressed={isActive}` em cada Button de filtro
 
 ---
 
-## 📅 Cronograma de Execução
+## Arquivos criticos
 
-| Atividade | Responsável | Status | Prazo |
-| :--- | :--- | :--- | :--- |
-| Configuração CI/CD (Somente Main) | AI Agent | Pendente | Hoje |
-| Renomeação de Projeto Vercel | AI Agent / User | Pendente | Hoje |
-| Refatoração de Tipos e Mock Removal | AI Agent | Pendente | Hoje |
-| Testes de API (GET/POST) | AI Agent / User | Pendente | Amanhã |
-| Teste dos 7 RPAs Modificados | User | Pendente | Amanhã |
-| Homologação Final Produção | User | Pendente | Amanhã |
+| Arquivo | Acao |
+|:--------|:-----|
+| `.github/workflows/Pipiline-vercel.yml` | Editar (pipeline CI/CD) |
+| `src/app/types/rpa.ts` | **Criar** (tipos extraidos) |
+| `src/app/components/mock-data.ts` | **Deletar** (apos migracao) |
+| `src/app/hooks/useRpaData.ts` | Editar (estado inicial + loading) |
+| `src/app/App.tsx` | Editar (skeletons + acessibilidade) |
+| `src/app/components/dashboard-header.tsx` | Editar (import) |
+| `src/app/components/rpa-card.tsx` | Editar (import) |
+| `src/app/components/status-badge.tsx` | Editar (import) |
+| `src/app/components/stats-summary.tsx` | Editar (import) |
+| `src/app/components/events-table.tsx` | Editar (import) |
+| `src/app/services/api.ts` | Editar (import) |
 
 ---
-*Documento gerado automaticamente pelo Gemini CLI - Foco em estabilidade e automação.*
+
+## Verificacao
+
+1. `npm run build` deve compilar sem erros apos todas as alteracoes
+2. `npm run dev` deve exibir skeletons por breve momento e depois os dados (ou estado vazio se API offline)
+3. Verificar que nenhum import de `mock-data` permanece: `grep -r "mock-data" src/`
+4. Testar navegacao por teclado nos filtros (Tab + Enter/Space)
+5. Verificar pipeline no GitHub Actions apos push na `main`
