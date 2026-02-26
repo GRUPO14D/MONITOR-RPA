@@ -1,5 +1,5 @@
 import { Clock, Database, Monitor, Building2, Cpu, MemoryStick } from 'lucide-react';
-import type { RpaProcess } from './mock-data';
+import type { RpaProcess } from '../types/rpa';
 import {
   StatusBadge,
   getStatusBarColor,

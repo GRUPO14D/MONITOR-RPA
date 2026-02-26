@@ -1,4 +1,4 @@
-import type { RpaProcess, RpaStatus, EventLog } from '../components/mock-data';
+import type { RpaProcess, RpaStatus, EventLog } from '../types/rpa';
 
 // ------------------------------------------------------------------ //
 //  Backend types (from server.ts)                                     //

@@ -1,5 +1,5 @@
 import { BarChart3, TrendingUp, AlertTriangle, Zap } from 'lucide-react';
-import type { StatsOverview } from './mock-data';
+import type { StatsOverview } from '../types/rpa';
 
 export function StatsSummary({ statsOverview }: { statsOverview: StatsOverview }) {
   return (
@@ -29,7 +29,7 @@ export function StatsSummary({ statsOverview }: { statsOverview: StatsOverview }
       <SummaryCard
         icon={<TrendingUp className="h-4 w-4 text-status-automation" />}
         label="Sucesso"
-        value={98.2}
+        value={parseFloat(statsOverview.uptime) || 0}
         subtext="taxa de hoje"
         accent="border-status-automation/20"
         suffix="%"

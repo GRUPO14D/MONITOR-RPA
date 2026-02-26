@@ -1,5 +1,5 @@
 import { Activity, Cpu, HardDrive, Wifi } from 'lucide-react';
-import type { StatsOverview } from './mock-data';
+import type { StatsOverview } from '../types/rpa';
 
 export function DashboardHeader({ statsOverview, isLive }: { statsOverview: StatsOverview; isLive: boolean }) {
   return (

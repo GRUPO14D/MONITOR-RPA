@@ -7,7 +7,8 @@ import { EventsTable } from "./components/events-table";
 import { useRpaData } from "./hooks/useRpaData";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import type { RpaStatus } from "./components/mock-data";
+import { Skeleton } from "./components/ui/skeleton";
+import type { RpaStatus } from "./types/rpa";
 
 const filterOptions: {
   label: string;
@@ -44,7 +45,7 @@ const filterActiveBg: Record<string, string> = {
 };
 
 export default function App() {
-  const { processes, events, stats, isLive, lastSync, refresh, isRefreshing } = useRpaData();
+  const { processes, events, stats, isLive, isLoading, lastSync, refresh, isRefreshing } = useRpaData();
   const [activeFilter, setActiveFilter] = useState<
     RpaStatus | "ALL"
   >("ALL");
@@ -71,7 +72,18 @@ export default function App() {
 
       <main className="px-4 py-6 sm:px-6 lg:px-8 space-y-6">
         {/* Resumo de estatísticas */}
-        <StatsSummary statsOverview={stats} />
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-border bg-card p-4 space-y-2">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-6 w-12" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <StatsSummary statsOverview={stats} />
+        )}
 
         {/* Barra de ferramentas */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -113,7 +125,7 @@ export default function App() {
         </div>
 
         {/* Pills de filtro */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="toolbar" aria-label="Filtros de status">
           {filterOptions.map((opt) => {
             const isActive = activeFilter === opt.value;
             return (
@@ -122,6 +134,7 @@ export default function App() {
                 variant="outline"
                 size="sm"
                 onClick={() => setActiveFilter(opt.value)}
+                aria-pressed={isActive}
                 className={`font-mono text-[0.65rem] tracking-wider h-auto py-1 ${
                   filterColors[opt.value]
                 } ${
@@ -146,22 +159,53 @@ export default function App() {
         </div>
 
         {/* Grid de Cards RPA */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProcesses.map((process) => (
-            <RpaCard key={process.id} process={process} />
-          ))}
-        </div>
-
-        {filteredProcesses.length === 0 && (
-          <div className="text-center py-12">
-            <p className="font-mono text-[0.8rem] text-muted-foreground">
-              Nenhum processo encontrado para o filtro atual.
-            </p>
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-border bg-card p-4 space-y-3">
+                <Skeleton className="h-1 w-full" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-3 w-full" />
+                <div className="grid grid-cols-2 gap-3">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </div>
+                <Skeleton className="h-1 w-full" />
+              </div>
+            ))}
           </div>
+        ) : (
+          <>
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              aria-live="polite"
+            >
+              {filteredProcesses.map((process) => (
+                <RpaCard key={process.id} process={process} />
+              ))}
+            </div>
+
+            {filteredProcesses.length === 0 && (
+              <div className="text-center py-12">
+                <p className="font-mono text-[0.8rem] text-muted-foreground">
+                  Nenhum processo encontrado para o filtro atual.
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         {/* Log de Eventos */}
-        <EventsTable events={events} />
+        {isLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-full" />
+            ))}
+          </div>
+        ) : (
+          <EventsTable events={events} />
+        )}
 
         {/* Rodapé */}
         <footer className="border-t border-border pt-4 pb-6 flex flex-col sm:flex-row items-center justify-between gap-2">

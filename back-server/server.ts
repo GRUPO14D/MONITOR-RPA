@@ -53,7 +53,7 @@ interface ApiEventsResponse {
 // ------------------------------------------------------------------ //
 
 const HOST = '0.0.0.0';
-const PORT = 8000;
+const PORT = parseInt(process.env.PORT || '8080', 10);
 const LOG_FILE = path.join(__dirname, 'rpa_events.jsonl');
 
 // Estado em memória: rpa_name → último estado
@@ -137,7 +137,9 @@ const server: FastifyInstance = Fastify({
 
 // CORS para desenvolvimento
 server.register(import('@fastify/cors'), {
-  origin: true
+  origin: process.env.NODE_ENV === 'production' 
+  ? process.env.FRONTEND_URL || false
+  : true 
 });
 
 // ------------------------------------------------------------------ //

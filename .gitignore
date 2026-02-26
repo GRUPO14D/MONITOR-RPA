@@ -6,3 +6,5 @@ dist/
 back-server/node_modules/
 back-server/dist/
 back-server/rpa_events.jsonl
+.vercel
+.env
