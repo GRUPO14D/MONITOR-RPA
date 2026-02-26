@@ -5,6 +5,8 @@ import { StatsSummary } from "./components/stats-summary";
 import { RpaCard } from "./components/rpa-card";
 import { EventsTable } from "./components/events-table";
 import { useRpaData } from "./hooks/useRpaData";
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
 import type { RpaStatus } from "./components/mock-data";
 
 const filterOptions: {
@@ -76,27 +78,29 @@ export default function App() {
           {/* Busca */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input
+            <Input
               type="text"
               aria-label="Buscar processos, empresas ou IDs"
               placeholder="Buscar processos, empresas, IDs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-md border border-border bg-secondary pl-9 pr-4 py-2 font-mono text-[0.75rem] text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-status-processing/50 focus:ring-1 focus:ring-status-processing/20 transition-colors"
+              className="pl-9 font-mono text-[0.75rem] bg-secondary border-border focus-visible:border-status-processing/50 focus-visible:ring-status-processing/20"
             />
           </div>
 
           <div className="flex items-center gap-3">
             {/* Atualizar */}
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={refresh}
-              className="flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 font-mono text-[0.7rem] text-muted-foreground hover:text-foreground hover:border-status-processing/30 transition-colors"
+              className="font-mono text-[0.7rem] text-muted-foreground hover:text-foreground hover:border-status-processing/30"
             >
               <RefreshCw
                 className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`}
               />
               ATUALIZAR
-            </button>
+            </Button>
 
             {/* Indicador de filtro */}
             <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -113,10 +117,12 @@ export default function App() {
           {filterOptions.map((opt) => {
             const isActive = activeFilter === opt.value;
             return (
-              <button
+              <Button
                 key={opt.value}
+                variant="outline"
+                size="sm"
                 onClick={() => setActiveFilter(opt.value)}
-                className={`rounded-md border px-3 py-1 font-mono text-[0.65rem] tracking-wider transition-all duration-200 ${
+                className={`font-mono text-[0.65rem] tracking-wider h-auto py-1 ${
                   filterColors[opt.value]
                 } ${
                   isActive
@@ -134,7 +140,7 @@ export default function App() {
                     }
                   </span>
                 )}
-              </button>
+              </Button>
             );
           })}
         </div>

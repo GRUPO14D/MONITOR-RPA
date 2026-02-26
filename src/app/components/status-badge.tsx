@@ -1,45 +1,22 @@
 import type { RpaStatus } from './mock-data';
+import { Badge } from './ui/badge';
 
-const statusConfig: Record<
+const statusStyles: Record<
   RpaStatus,
-  { bg: string; text: string; border: string; glow: string }
+  string
 > = {
-  RUNNING: {
-    bg: 'bg-status-success/10',
-    text: 'text-status-success',
-    border: 'border-status-success/30',
-    glow: 'shadow-[0_0_8px_rgba(0,255,136,0.3)]',
-  },
-  COMPLETED: {
-    bg: 'bg-status-processing/10',
-    text: 'text-status-processing',
-    border: 'border-status-processing/30',
-    glow: '',
-  },
-  ERROR: {
-    bg: 'bg-status-error/10',
-    text: 'text-status-error',
-    border: 'border-status-error/30',
-    glow: 'shadow-[0_0_8px_rgba(255,71,87,0.3)]',
-  },
-  WARNING: {
-    bg: 'bg-status-warning/10',
-    text: 'text-status-warning',
-    border: 'border-status-warning/30',
-    glow: '',
-  },
-  QUEUED: {
-    bg: 'bg-status-automation/10',
-    text: 'text-status-automation',
-    border: 'border-status-automation/30',
-    glow: '',
-  },
-  IDLE: {
-    bg: 'bg-status-idle/10',
-    text: 'text-status-idle',
-    border: 'border-status-idle/30',
-    glow: '',
-  },
+  RUNNING:
+    'bg-status-success/10 text-status-success border-status-success/30 shadow-[0_0_8px_rgba(0,255,136,0.3)]',
+  COMPLETED:
+    'bg-status-processing/10 text-status-processing border-status-processing/30',
+  ERROR:
+    'bg-status-error/10 text-status-error border-status-error/30 shadow-[0_0_8px_rgba(255,71,87,0.3)]',
+  WARNING:
+    'bg-status-warning/10 text-status-warning border-status-warning/30',
+  QUEUED:
+    'bg-status-automation/10 text-status-automation border-status-automation/30',
+  IDLE:
+    'bg-status-idle/10 text-status-idle border-status-idle/30',
 };
 
 const statusLabel: Record<RpaStatus, string> = {
@@ -52,32 +29,40 @@ const statusLabel: Record<RpaStatus, string> = {
 };
 
 export function StatusBadge({ status }: { status: RpaStatus }) {
-  const config = statusConfig[status];
-
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 font-mono text-[0.65rem] tracking-widest border ${config.bg} ${config.text} ${config.border} ${config.glow}`}
+    <Badge
+      variant="outline"
+      className={`font-mono text-[0.65rem] tracking-widest ${statusStyles[status]}`}
     >
-      {status === 'RUNNING' && (
+      {(status === 'RUNNING' || status === 'ERROR') && (
         <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-success opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-success" />
-        </span>
-      )}
-      {status === 'ERROR' && (
-        <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-status-error opacity-75" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-status-error" />
+          <span
+            className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+              status === 'RUNNING' ? 'bg-status-success' : 'bg-status-error'
+            }`}
+          />
+          <span
+            className={`relative inline-flex h-1.5 w-1.5 rounded-full ${
+              status === 'RUNNING' ? 'bg-status-success' : 'bg-status-error'
+            }`}
+          />
         </span>
       )}
       {statusLabel[status]}
-    </span>
+    </Badge>
   );
 }
 
 export function StatusDot({ status }: { status: RpaStatus }) {
-  const config = statusConfig[status];
-  return <span className={`inline-block h-2 w-2 rounded-full ${config.text} bg-current`} />;
+  const colorMap: Record<RpaStatus, string> = {
+    RUNNING: 'bg-status-success',
+    COMPLETED: 'bg-status-processing',
+    ERROR: 'bg-status-error',
+    WARNING: 'bg-status-warning',
+    QUEUED: 'bg-status-automation',
+    IDLE: 'bg-status-idle',
+  };
+  return <span className={`inline-block h-2 w-2 rounded-full ${colorMap[status]}`} />;
 }
 
 export function getStatusBarColor(status: RpaStatus): string {
