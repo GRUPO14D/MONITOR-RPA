@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { fetchRpaStatus, fetchEvents } from '../services/api';
+import { fetchRpaStatus, fetchEvents, pingBackend } from '../services/api';
 import type { RpaProcess, EventLog, StatsOverview } from '../types/rpa';
 
 interface RpaData {
@@ -11,6 +11,8 @@ interface RpaData {
   lastSync: string;
   refresh: () => void;
   isRefreshing: boolean;
+  /** null = verificando, true = online, false = offline */
+  backendOnline: boolean | null;
 }
 
 const POLL_INTERVAL = 5000; // 5s
@@ -48,6 +50,7 @@ export function useRpaData(): RpaData {
   const [isLoading, setIsLoading] = useState(true);
   const [lastSync, setLastSync] = useState('--:--:--');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchData = useCallback(async () => {
@@ -60,6 +63,7 @@ export function useRpaData(): RpaData {
       setProcesses(newProcesses);
       setEvents(newEvents);
       setIsLive(true);
+      setBackendOnline(true);
       setLastSync(
         new Date().toLocaleTimeString('pt-BR', {
           hour: '2-digit',
@@ -70,6 +74,7 @@ export function useRpaData(): RpaData {
     } catch {
       // Backend unreachable — keep current data
       setIsLive(false);
+      setBackendOnline(false);
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +87,11 @@ export function useRpaData(): RpaData {
     });
   }, [fetchData]);
 
+  // Ping rápido antes do primeiro fetch para feedback imediato de conectividade
+  useEffect(() => {
+    pingBackend().then(setBackendOnline);
+  }, []);
+
   // Initial fetch + polling
   useEffect(() => {
     fetchData();
@@ -93,5 +103,5 @@ export function useRpaData(): RpaData {
 
   const stats = computeStats(processes);
 
-  return { processes, events, stats, isLive, isLoading, lastSync, refresh, isRefreshing };
+  return { processes, events, stats, isLive, isLoading, lastSync, refresh, isRefreshing, backendOnline };
 }

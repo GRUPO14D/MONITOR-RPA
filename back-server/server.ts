@@ -208,6 +208,12 @@ server.get('/api/status', async (request: FastifyRequest, reply: FastifyReply) =
   return response;
 });
 
+// GET /health - Verificação de saúde da API (usado pelo frontend em build)
+server.get('/health', async () => ({
+  ok: true,
+  ts: Date.now(),
+}));
+
 // GET /api/events - Retorna eventos recentes
 server.get<{ Querystring: { horas?: string } }>('/api/events', async (request, reply) => {
   const horas = parseInt(request.query.horas || '24', 10);
