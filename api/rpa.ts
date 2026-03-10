@@ -13,6 +13,7 @@ const corsHeaders = {
 };
 
 const ROUTE_MAP: Record<string, string> = {
+  health: '/health',
   status: '/api/status',
   events: '/api/events',
 };

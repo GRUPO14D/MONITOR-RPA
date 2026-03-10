@@ -9,3 +9,4 @@ back-server/rpa_events.jsonl
 .vercel
 .env
 .env.local
+.env.production.local
