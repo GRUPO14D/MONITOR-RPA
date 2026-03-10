@@ -9,17 +9,23 @@
     "dev": "tsx watch server.ts",
     "clean": "rm -rf dist"
   },
-  "keywords": ["rpa", "monitoring", "telemetry", "grupo14d"],
+  "keywords": [
+    "rpa",
+    "monitoring",
+    "telemetry",
+    "grupo14d"
+  ],
   "author": "Davi Cassoli",
   "license": "ISC",
   "dependencies": {
-    "fastify": "^5.2.0",
-    "@fastify/cors": "^10.0.1"
+    "@fastify/cors": "^10.0.1",
+    "@fastify/static": "^9.0.0",
+    "fastify": "^5.2.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
     "@types/node": "^22.10.2",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "engines": {
     "node": ">=18.0.0"
