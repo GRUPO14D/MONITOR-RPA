@@ -8,6 +8,7 @@
 
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fs from 'fs/promises';
+import fsSync from 'fs';
 import path from 'path';
 
 // ------------------------------------------------------------------ //
@@ -53,7 +54,7 @@ interface ApiEventsResponse {
 // ------------------------------------------------------------------ //
 
 const HOST = '0.0.0.0';
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const PORT = parseInt(process.env.PORT || '8000', 10);
 const LOG_FILE = path.join(__dirname, 'rpa_events.jsonl');
 
 // Estado em memória: rpa_name → último estado
@@ -135,12 +136,29 @@ const server: FastifyInstance = Fastify({
   }
 });
 
-// CORS para desenvolvimento
+// CORS:
+//   production remoto  → FRONTEND_URL obrigatório (ex: Railway/Vercel)
+//   production local   → fallback para localhost:3000 se FRONTEND_URL ausente
+//   development        → aceita qualquer origem
+const getCorsOrigin = (): string | boolean => {
+  if (process.env.NODE_ENV !== 'production') return true;
+  return process.env.FRONTEND_URL || 'http://localhost:3000';
+};
+
 server.register(import('@fastify/cors'), {
-  origin: process.env.NODE_ENV === 'production' 
-  ? process.env.FRONTEND_URL || false
-  : true 
+  origin: getCorsOrigin(),
 });
+
+// Serve o frontend buildado se dist/ existir (modo standalone)
+const FRONTEND_DIST = path.resolve(__dirname, '..', 'dist');
+if (fsSync.existsSync(FRONTEND_DIST)) {
+  server.register(import('@fastify/static'), {
+    root: FRONTEND_DIST,
+    prefix: '/',
+    // Não conflita com rotas de API registradas depois
+    wildcard: false,
+  });
+}
 
 // ------------------------------------------------------------------ //
 //  Routes                                                            //
@@ -190,6 +208,12 @@ server.get('/api/status', async (request: FastifyRequest, reply: FastifyReply) =
   return response;
 });
 
+// GET /health - Verificação de saúde da API (usado pelo frontend em build)
+server.get('/health', async () => ({
+  ok: true,
+  ts: Date.now(),
+}));
+
 // GET /api/events - Retorna eventos recentes
 server.get<{ Querystring: { horas?: string } }>('/api/events', async (request, reply) => {
   const horas = parseInt(request.query.horas || '24', 10);
@@ -199,34 +223,17 @@ server.get<{ Querystring: { horas?: string } }>('/api/events', async (request, r
   return response;
 });
 
-// GET / - Serve o frontend React
-server.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
-  return reply.type('text/html').send(`
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>RPA Monitor — Grupo 14D</title>
-    </head>
-    <body>
-      <div id="root">
-        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: system-ui;">
-          <div style="text-align: center;">
-            <h1>RPA Monitor</h1>
-            <p>Frontend React deve ser servido separadamente em desenvolvimento</p>
-            <p>API disponível em:</p>
-            <ul style="list-style: none; padding: 0;">
-              <li><a href="/api/status">/api/status</a></li>
-              <li><a href="/api/events">/api/events</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `);
-});
+// Fallback SPA — rotas do React Router que não são arquivos estáticos
+// Só registra se o dist/ existir (modo standalone)
+if (fsSync.existsSync(FRONTEND_DIST)) {
+  server.setNotFoundHandler(async (request: FastifyRequest, reply: FastifyReply) => {
+    // Não intercepta rotas de API
+    if (request.url.startsWith('/api') || request.url.startsWith('/events')) {
+      return reply.status(404).send({ error: 'Not found' });
+    }
+    return reply.type('text/html').sendFile('index.html');
+  });
+}
 
 // ------------------------------------------------------------------ //
 //  Server Start                                                      //
