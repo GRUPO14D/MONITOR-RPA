@@ -150,7 +150,8 @@ server.register(import('@fastify/cors'), {
 });
 
 // Serve o frontend buildado se dist/ existir (modo standalone)
-const FRONTEND_DIST = path.resolve(__dirname, '..', 'dist');
+// __dirname em back-server/dist/server.js → ../../dist = raiz/dist (build Vite)
+const FRONTEND_DIST = path.resolve(__dirname, '..', '..', 'dist');
 if (fsSync.existsSync(FRONTEND_DIST)) {
   server.register(import('@fastify/static'), {
     root: FRONTEND_DIST,
@@ -226,11 +227,10 @@ server.get<{ Querystring: { horas?: string } }>('/api/events', async (request, r
 // Fallback SPA — rotas do React Router que não são arquivos estáticos
 // Só registra se o dist/ existir (modo standalone)
 if (fsSync.existsSync(FRONTEND_DIST)) {
-  server.setNotFoundHandler(async (request: FastifyRequest, reply: FastifyReply) => {
-    // Não intercepta rotas de API
-    if (request.url.startsWith('/api') || request.url.startsWith('/events')) {
-      return reply.status(404).send({ error: 'Not found' });
-    }
+  // Fastify proíbe reply.status(404) dentro do setNotFoundHandler.
+  // Rotas de API registradas acima respondem antes de chegar aqui,
+  // então qualquer rota desconhecida é uma rota do React Router → index.html
+  server.setNotFoundHandler(async (_request: FastifyRequest, reply: FastifyReply) => {
     return reply.type('text/html').sendFile('index.html');
   });
 }
