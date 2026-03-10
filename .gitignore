@@ -8,3 +8,4 @@ back-server/dist/
 back-server/rpa_events.jsonl
 .vercel
 .env
+.env.local
