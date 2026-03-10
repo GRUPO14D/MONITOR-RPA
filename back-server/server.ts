@@ -53,7 +53,7 @@ interface ApiEventsResponse {
 // ------------------------------------------------------------------ //
 
 const HOST = '0.0.0.0';
-const PORT = parseInt(process.env.PORT || '8080', 10);
+const PORT = parseInt(process.env.PORT || '8000', 10);
 const LOG_FILE = path.join(__dirname, 'rpa_events.jsonl');
 
 // Estado em memória: rpa_name → último estado
@@ -135,11 +135,17 @@ const server: FastifyInstance = Fastify({
   }
 });
 
-// CORS para desenvolvimento
+// CORS:
+//   production remoto  → FRONTEND_URL obrigatório (ex: Railway/Vercel)
+//   production local   → fallback para localhost:3000 se FRONTEND_URL ausente
+//   development        → aceita qualquer origem
+const getCorsOrigin = (): string | boolean => {
+  if (process.env.NODE_ENV !== 'production') return true;
+  return process.env.FRONTEND_URL || 'http://localhost:3000';
+};
+
 server.register(import('@fastify/cors'), {
-  origin: process.env.NODE_ENV === 'production' 
-  ? process.env.FRONTEND_URL || false
-  : true 
+  origin: getCorsOrigin(),
 });
 
 // ------------------------------------------------------------------ //
