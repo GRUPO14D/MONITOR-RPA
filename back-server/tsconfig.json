@@ -19,7 +19,8 @@
   "include": [
     "server.ts",
     "db.ts",
-    "migrate.ts"
+    "migrate.ts",
+    "helpers.ts"
   ],
   "exclude": [
     "node_modules",

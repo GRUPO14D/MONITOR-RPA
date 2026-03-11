@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
@@ -24,6 +25,15 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8000',
       '/events': 'http://localhost:8000',
+    },
+  },
+
+  test: {
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/app/services/**'],
     },
   },
 })
