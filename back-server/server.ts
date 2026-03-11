@@ -9,7 +9,7 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fsSync from 'fs';
 import path from 'path';
-import { initDb, insertEvent, getRecentEvents, getLastStatePerRpa, sql } from './db';
+import { initDb, insertEvent, getRecentEvents, getLastStatePerRpa } from './db';
 
 // ------------------------------------------------------------------ //
 //  Types & Interfaces                                                //
@@ -234,7 +234,6 @@ const start = async (): Promise<void> => {
 process.on('SIGINT', async () => {
   console.log('\n[RPA Monitor] Encerrando servidor...');
   await server.close();
-  await sql.end();
   process.exit(0);
 });
 
