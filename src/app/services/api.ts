@@ -47,6 +47,7 @@ const STATUS_MAP: Record<string, RpaStatus> = {
   success: 'COMPLETED',
   error: 'ERROR',
   automating: 'RUNNING',
+  warning: 'WARNING',
   unknown: 'IDLE',
 };
 
@@ -100,36 +101,19 @@ function mapEventToLog(evt: BackendTelemetryEvent, index: number): EventLog {
 }
 
 // ------------------------------------------------------------------ //
-//  API base URL                                                       //
-// ------------------------------------------------------------------ //
-
-// Em dev, VITE_API_URL fica vazio e o proxy do Vite resolve /api → :8000
-// Em build local/produção, VITE_API_URL=http://localhost:8000 (via .env.production)
-const BASE = import.meta.env.VITE_API_URL ?? '';
-
-// ------------------------------------------------------------------ //
 //  API fetch functions                                                //
 // ------------------------------------------------------------------ //
 
 export async function fetchRpaStatus(): Promise<RpaProcess[]> {
-  const res = await fetch(`${BASE}/api/status`);
+  const res = await fetch('/api/status');
   if (!res.ok) throw new Error(`Status ${res.status}`);
   const data: BackendStatusResponse = await res.json();
   return data.rpas.map(mapRpa);
 }
 
 export async function fetchEvents(horas: number = 24): Promise<EventLog[]> {
-  const res = await fetch(`${BASE}/api/events?horas=${horas}`);
+  const res = await fetch(`/api/events?horas=${horas}`);
   if (!res.ok) throw new Error(`Status ${res.status}`);
   const data: BackendEventsResponse = await res.json();
   return data.events.map(mapEventToLog).reverse();
-}
-
-export async function pingBackend(): Promise<boolean> {
-  try {
-    const res = await fetch(`${BASE}/health`);
-    return res.ok;
-  } catch {
-    return false;
-  }
 }

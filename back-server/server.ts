@@ -1,15 +1,15 @@
 /**
  * server.ts — Servidor central de monitoramento de RPAs (TypeScript + Fastify)
  * Grupo 14D — Infraestrutura de telemetria
- * 
+ *
  * Migrado de Python/FastAPI para Node.js/TypeScript/Fastify
  * Mantém compatibilidade total com telemetry.py dos RPAs
  */
 
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import fs from 'fs/promises';
 import fsSync from 'fs';
 import path from 'path';
+import { initDb, insertEvent, getRecentEvents, getLastStatePerRpa, sql } from './db';
 
 // ------------------------------------------------------------------ //
 //  Types & Interfaces                                                //
@@ -25,7 +25,7 @@ interface TelemetryEvent {
   received_at?: string;
   status?: string;
   duracao_segundos?: number;
-  [key: string]: any; // Extra fields
+  [key: string]: any;
 }
 
 interface RPAStatus {
@@ -55,108 +55,60 @@ interface ApiEventsResponse {
 
 const HOST = '0.0.0.0';
 const PORT = parseInt(process.env.PORT || '8000', 10);
-const LOG_FILE = path.join(__dirname, 'rpa_events.jsonl');
 
-// Estado em memória: rpa_name → último estado
+// Estado em memória: rpa_name → último estado (reconstruído do DB no startup)
 const estado = new Map<string, RPAStatus>();
 
 // ------------------------------------------------------------------ //
-//  Helpers                                                          //
+//  Helpers                                                           //
 // ------------------------------------------------------------------ //
 
-async function salvarEvento(payload: TelemetryEvent): Promise<void> {
-  const linha = JSON.stringify(payload) + '\n';
-  await fs.appendFile(LOG_FILE, linha, 'utf-8');
-}
+const STATUS_MAP: Record<string, string> = {
+  rpa_started:          'running',
+  rpa_error:            'error',
+  automation_started:   'automating',
+};
 
-function atualizarEstado(payload: TelemetryEvent): void {
-  const rpa = payload.rpa || 'desconhecido';
-  const event = payload.event || '';
-
-  const STATUS_MAP: Record<string, string> = {
-    'rpa_started': 'running',
-    'rpa_finished': payload.status || 'success',
-    'rpa_error': 'error',
-    'automation_started': 'automating',
-    'automation_finished': payload.status || 'success',
-  };
-
-  const novoEstado: RPAStatus = {
-    rpa,
-    status: STATUS_MAP[event] || 'unknown',
-    event,
-    empresa: payload.empresa || '',
-    machine: payload.machine || '',
-    timestamp: payload.timestamp || new Date().toISOString(),
-    session_id: payload.session_id || '',
-    duracao_segundos: payload.duracao_segundos,
-    detalhes: Object.fromEntries(
-      Object.entries(payload).filter(([key]) => 
-        !['rpa', 'event', 'empresa', 'machine', 'timestamp', 'session_id', 'status'].includes(key)
-      )
-    ),
-  };
-
-  estado.set(rpa, novoEstado);
-}
-
-async function lerEventosRecentes(horas: number = 24): Promise<TelemetryEvent[]> {
-  try {
-    const data = await fs.readFile(LOG_FILE, 'utf-8');
-    const linhas = data.trim().split('\n').filter(Boolean);
-    const corte = new Date(Date.now() - horas * 60 * 60 * 1000);
-    
-    const eventos: TelemetryEvent[] = [];
-    for (const linha of linhas) {
-      try {
-        const evento = JSON.parse(linha) as TelemetryEvent;
-        const timestamp = new Date(evento.timestamp);
-        if (timestamp >= corte) {
-          eventos.push(evento);
-        }
-      } catch (parseError) {
-        // Ignora linhas corrompidas
-        continue;
-      }
-    }
-    
-    return eventos.slice(-200); // máximo 200 eventos
-  } catch (error) {
-    return [];
+function resolveStatus(event: string, payloadStatus?: string): string {
+  if (event === 'rpa_finished' || event === 'automation_finished') {
+    return payloadStatus || 'success';
   }
+  return STATUS_MAP[event] || 'unknown';
+}
+
+function buildRpaStatus(payload: TelemetryEvent, extra: Record<string, any> = {}): RPAStatus {
+  return {
+    rpa:              payload.rpa || 'desconhecido',
+    status:           resolveStatus(payload.event || '', payload.status),
+    event:            payload.event || '',
+    empresa:          payload.empresa || '',
+    machine:          payload.machine || '',
+    timestamp:        payload.timestamp || new Date().toISOString(),
+    session_id:       payload.session_id || '',
+    duracao_segundos: payload.duracao_segundos,
+    detalhes:         extra,
+  };
 }
 
 // ------------------------------------------------------------------ //
 //  Server Setup                                                      //
 // ------------------------------------------------------------------ //
 
-const server: FastifyInstance = Fastify({
-  logger: {
-    level: 'warn'
-  }
-});
+const server: FastifyInstance = Fastify({ logger: { level: 'warn' } });
 
-// CORS:
-//   production remoto  → FRONTEND_URL obrigatório (ex: Railway/Vercel)
-//   production local   → fallback para localhost:3000 se FRONTEND_URL ausente
-//   development        → aceita qualquer origem
 const getCorsOrigin = (): string | boolean => {
   if (process.env.NODE_ENV !== 'production') return true;
   return process.env.FRONTEND_URL || 'http://localhost:3000';
 };
 
-server.register(import('@fastify/cors'), {
-  origin: getCorsOrigin(),
-});
+server.register(import('@fastify/cors'), { origin: getCorsOrigin() });
 
 // Serve o frontend buildado se dist/ existir (modo standalone)
-// __dirname em back-server/dist/server.js → ../../dist = raiz/dist (build Vite)
 const FRONTEND_DIST = path.resolve(__dirname, '..', '..', 'dist');
 if (fsSync.existsSync(FRONTEND_DIST)) {
   server.register(import('@fastify/static'), {
     root: FRONTEND_DIST,
     prefix: '/',
-    // Não conflita com rotas de API registradas depois
     wildcard: false,
   });
 }
@@ -165,71 +117,85 @@ if (fsSync.existsSync(FRONTEND_DIST)) {
 //  Routes                                                            //
 // ------------------------------------------------------------------ //
 
-// POST /events - Recebe eventos dos RPAs
 const eventSchema = {
   body: {
     type: 'object',
     required: ['rpa', 'event', 'session_id', 'machine', 'empresa', 'timestamp'],
     properties: {
-      rpa: { type: 'string' },
-      event: { type: 'string' },
-      session_id: { type: 'string' },
-      machine: { type: 'string' },
-      empresa: { type: 'string' },
-      timestamp: { type: 'string' },
-      status: { type: 'string' },
+      rpa:              { type: 'string' },
+      event:            { type: 'string' },
+      session_id:       { type: 'string' },
+      machine:          { type: 'string' },
+      empresa:          { type: 'string' },
+      timestamp:        { type: 'string' },
+      status:           { type: 'string' },
       duracao_segundos: { type: 'number' },
     },
   },
 };
 
+// POST /events — Recebe eventos dos RPAs
 server.post('/events', { schema: eventSchema }, async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const payload = request.body as TelemetryEvent;
     payload.received_at = new Date().toISOString();
 
-    await salvarEvento(payload);
-    atualizarEstado(payload);
+    await insertEvent(payload);
+
+    // Atualiza estado em memória
+    const extra: Record<string, any> = {};
+    const knownFields = new Set(['rpa', 'event', 'session_id', 'machine', 'empresa', 'timestamp', 'received_at', 'status', 'duracao_segundos']);
+    for (const [k, v] of Object.entries(payload)) {
+      if (!knownFields.has(k)) extra[k] = v;
+    }
+    estado.set(payload.rpa, buildRpaStatus(payload, extra));
 
     return { ok: true };
   } catch (error) {
     return reply.status(400).send({
       ok: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-// GET /api/status - Retorna estado atual de todos os RPAs
-server.get('/api/status', async (request: FastifyRequest, reply: FastifyReply) => {
+// GET /api/status — Retorna estado atual de todos os RPAs
+server.get('/api/status', async (_request: FastifyRequest, _reply: FastifyReply) => {
   const response: ApiStatusResponse = {
     rpas: Array.from(estado.values()),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
   };
   return response;
 });
 
-// GET /health - Verificação de saúde da API (usado pelo frontend em build)
-server.get('/health', async () => ({
-  ok: true,
-  ts: Date.now(),
-}));
-
-// GET /api/events - Retorna eventos recentes
-server.get<{ Querystring: { horas?: string } }>('/api/events', async (request, reply) => {
+// GET /api/events — Retorna eventos recentes
+server.get<{ Querystring: { horas?: string } }>('/api/events', async (request) => {
   const horas = parseInt(request.query.horas || '24', 10);
-  const events = await lerEventosRecentes(horas);
-  
+  const rows = await getRecentEvents(horas);
+
+  // Recompõe TelemetryEvent achatado para compatibilidade com o frontend
+  const events: TelemetryEvent[] = rows.map((row) => ({
+    rpa:              row.rpa,
+    event:            row.event,
+    session_id:       row.session_id,
+    machine:          row.machine,
+    empresa:          row.empresa,
+    timestamp:        typeof row.timestamp === 'string' ? row.timestamp : (row.timestamp as any).toISOString(),
+    received_at:      row.received_at,
+    status:           row.status ?? undefined,
+    duracao_segundos: row.duracao_segundos ?? undefined,
+    ...row.extra,
+  }));
+
   const response: ApiEventsResponse = { events };
   return response;
 });
 
-// Fallback SPA — rotas do React Router que não são arquivos estáticos
-// Só registra se o dist/ existir (modo standalone)
+// GET /health — Verificação de saúde
+server.get('/health', async () => ({ ok: true, ts: Date.now() }));
+
+// Fallback SPA
 if (fsSync.existsSync(FRONTEND_DIST)) {
-  // Fastify proíbe reply.status(404) dentro do setNotFoundHandler.
-  // Rotas de API registradas acima respondem antes de chegar aqui,
-  // então qualquer rota desconhecida é uma rota do React Router → index.html
   server.setNotFoundHandler(async (_request: FastifyRequest, reply: FastifyReply) => {
     return reply.type('text/html').sendFile('index.html');
   });
@@ -241,12 +207,25 @@ if (fsSync.existsSync(FRONTEND_DIST)) {
 
 const start = async (): Promise<void> => {
   try {
+    // 1. Inicializa DB e schema
+    await initDb();
+    console.log('[RPA Monitor] PostgreSQL conectado (Neon)');
+
+    // 2. Reconstrói estado em memória a partir do último evento de cada RPA
+    const lastStates = await getLastStatePerRpa();
+    for (const row of lastStates) {
+      estado.set(row.rpa, buildRpaStatus(
+        { ...row, ...row.extra },
+        row.extra,
+      ));
+    }
+    console.log(`[RPA Monitor] Estado reconstruído: ${estado.size} RPA(s) carregados do DB`);
+
+    // 3. Inicia servidor
     await server.listen({ host: HOST, port: PORT });
-    console.log(`[RPA Monitor] Servidor TypeScript iniciando em http://${HOST}:${PORT}`);
-    console.log(`[RPA Monitor] Eventos salvos em: ${path.resolve(LOG_FILE)}`);
-    console.log(`[RPA Monitor] Frontend React deve rodar separadamente (ex: porta 3000)`);
+    console.log(`[RPA Monitor] Servidor rodando em http://${HOST}:${PORT}`);
   } catch (error) {
-    server.log.error(error);
+    console.error('[RPA Monitor] Falha ao iniciar:', error);
     process.exit(1);
   }
 };
@@ -255,6 +234,7 @@ const start = async (): Promise<void> => {
 process.on('SIGINT', async () => {
   console.log('\n[RPA Monitor] Encerrando servidor...');
   await server.close();
+  await sql.end();
   process.exit(0);
 });
 
