@@ -56,6 +56,12 @@ interface ApiEventsResponse {
 const HOST = '0.0.0.0';
 const PORT = parseInt(process.env.PORT || '8000', 10);
 
+const API_KEY = process.env.RPA_API_KEY;
+if (!API_KEY) {
+  console.error('[RPA Monitor] ERRO: RPA_API_KEY nao configurada. Defina no .env antes de iniciar.');
+  process.exit(1);
+}
+
 // Estado em memória: rpa_name → último estado (reconstruído do DB no startup)
 const estado = new Map<string, RPAStatus>();
 
@@ -114,6 +120,19 @@ if (fsSync.existsSync(FRONTEND_DIST)) {
 }
 
 // ------------------------------------------------------------------ //
+//  Auth                                                              //
+// ------------------------------------------------------------------ //
+
+function requireApiKey(request: FastifyRequest, reply: FastifyReply, done: () => void): void {
+  const key = request.headers['x-api-key'];
+  if (!key || key !== API_KEY) {
+    reply.status(401).send({ ok: false, error: 'Unauthorized' });
+    return;
+  }
+  done();
+}
+
+// ------------------------------------------------------------------ //
 //  Routes                                                            //
 // ------------------------------------------------------------------ //
 
@@ -134,8 +153,8 @@ const eventSchema = {
   },
 };
 
-// POST /events — Recebe eventos dos RPAs
-server.post('/events', { schema: eventSchema }, async (request: FastifyRequest, reply: FastifyReply) => {
+// POST /events — Recebe eventos dos RPAs (requer X-Api-Key)
+server.post('/events', { schema: eventSchema, onRequest: requireApiKey }, async (request: FastifyRequest, reply: FastifyReply) => {
   try {
     const payload = request.body as TelemetryEvent;
     payload.received_at = new Date().toISOString();
