@@ -17,7 +17,9 @@
     "allowSyntheticDefaultImports": true
   },
   "include": [
-    "server.ts"
+    "server.ts",
+    "db.ts",
+    "migrate.ts"
   ],
   "exclude": [
     "node_modules",

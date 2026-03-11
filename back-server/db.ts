@@ -92,22 +92,24 @@ export async function insertEvent(payload: Record<string, any>): Promise<void> {
 }
 
 export async function getRecentEvents(horas: number): Promise<TelemetryRow[]> {
-  return sql`
+  const rows = await sql`
     SELECT rpa, event, session_id, machine, empresa,
            timestamp, received_at, status, duracao_segundos, extra
     FROM   rpa_events
-    WHERE  timestamp >= NOW() - (${horas} || ' hours')::INTERVAL
+    WHERE  timestamp >= NOW() - make_interval(hours => ${horas})
     ORDER  BY timestamp ASC
     LIMIT  200
-  ` as Promise<TelemetryRow[]>;
+  `;
+  return rows as unknown as TelemetryRow[];
 }
 
 export async function getLastStatePerRpa(): Promise<TelemetryRow[]> {
-  return sql`
+  const rows = await sql`
     SELECT DISTINCT ON (rpa)
            rpa, event, session_id, machine, empresa,
            timestamp, received_at, status, duracao_segundos, extra
     FROM   rpa_events
     ORDER  BY rpa, timestamp DESC
-  ` as Promise<TelemetryRow[]>;
+  `;
+  return rows as unknown as TelemetryRow[];
 }
