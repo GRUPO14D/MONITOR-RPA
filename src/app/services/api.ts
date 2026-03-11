@@ -51,11 +51,11 @@ const STATUS_MAP: Record<string, RpaStatus> = {
   unknown: 'IDLE',
 };
 
-function mapStatus(backendStatus: string): RpaStatus {
+export function mapStatus(backendStatus: string): RpaStatus {
   return STATUS_MAP[backendStatus] || 'IDLE';
 }
 
-function formatDuration(seconds?: number): string {
+export function formatDuration(seconds?: number): string {
   if (!seconds) return '--:--';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);

@@ -10,35 +10,12 @@ import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import fsSync from 'fs';
 import path from 'path';
 import { initDb, insertEvent, getRecentEvents, getLastStatePerRpa } from './db';
+import { buildRpaStatus } from './helpers';
+import type { TelemetryEvent, RPAStatus } from './helpers';
 
 // ------------------------------------------------------------------ //
 //  Types & Interfaces                                                //
 // ------------------------------------------------------------------ //
-
-interface TelemetryEvent {
-  rpa: string;
-  event: string;
-  session_id: string;
-  machine: string;
-  empresa: string;
-  timestamp: string;
-  received_at?: string;
-  status?: string;
-  duracao_segundos?: number;
-  [key: string]: any;
-}
-
-interface RPAStatus {
-  rpa: string;
-  status: string;
-  event: string;
-  empresa: string;
-  machine: string;
-  timestamp: string;
-  session_id: string;
-  duracao_segundos?: number;
-  detalhes: Record<string, any>;
-}
 
 interface ApiStatusResponse {
   rpas: RPAStatus[];
@@ -58,37 +35,6 @@ const PORT = parseInt(process.env.PORT || '8000', 10);
 
 // Estado em memória: rpa_name → último estado (reconstruído do DB no startup)
 const estado = new Map<string, RPAStatus>();
-
-// ------------------------------------------------------------------ //
-//  Helpers                                                           //
-// ------------------------------------------------------------------ //
-
-const STATUS_MAP: Record<string, string> = {
-  rpa_started:          'running',
-  rpa_error:            'error',
-  automation_started:   'automating',
-};
-
-function resolveStatus(event: string, payloadStatus?: string): string {
-  if (event === 'rpa_finished' || event === 'automation_finished') {
-    return payloadStatus || 'success';
-  }
-  return STATUS_MAP[event] || 'unknown';
-}
-
-function buildRpaStatus(payload: TelemetryEvent, extra: Record<string, any> = {}): RPAStatus {
-  return {
-    rpa:              payload.rpa || 'desconhecido',
-    status:           resolveStatus(payload.event || '', payload.status),
-    event:            payload.event || '',
-    empresa:          payload.empresa || '',
-    machine:          payload.machine || '',
-    timestamp:        payload.timestamp || new Date().toISOString(),
-    session_id:       payload.session_id || '',
-    duracao_segundos: payload.duracao_segundos,
-    detalhes:         extra,
-  };
-}
 
 // ------------------------------------------------------------------ //
 //  Server Setup                                                      //
