@@ -117,3 +117,12 @@ export async function fetchEvents(horas: number = 24): Promise<EventLog[]> {
   const data: BackendEventsResponse = await res.json();
   return data.events.map(mapEventToLog).reverse();
 }
+
+export async function pingBackend(): Promise<boolean> {
+  try {
+    const res = await fetch('/health', { method: 'GET' });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
