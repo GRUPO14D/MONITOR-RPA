@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-# start-dev.sh — Inicia backend e frontend em modo desenvolvimento (macOS/Linux)
-# Abre duas abas/processos separados: Fastify (tsx watch) e Vite
+# start-dev.sh - Starts backend and frontend in development mode (macOS/Linux)
+# Opens two tabs/processes: Fastify (tsx watch) and Vite
 
 set -e
 root="$(cd "$(dirname "$0")" && pwd)"
 
-echo "Iniciando MONITOR-RPA em modo DEV..."
+echo "Starting MONITOR-RPA in DEV mode..."
 
-# Verifica .env
-if [ ! -f "$root/.env" ]; then
-    echo "AVISO: .env nao encontrado — crie o arquivo com DATABASE_URL antes de continuar."
+# Check environment
+if [ ! -f "$root/.env" ] && [ ! -f "$root/.env.local" ] && [ -z "${DATABASE_URL:-}" ]; then
+    echo "WARNING: no .env/.env.local file found and DATABASE_URL is not set."
+    echo "Backend may fail until DATABASE_URL is configured."
 fi
 
-# Backend — tsx watch (hot reload) com --env-file=../.env embutido no npm run dev
-osascript -e "tell application \"Terminal\" to do script \"cd '$root/back-server' && echo '[BACKEND] Iniciando em http://192.168.1.3:8000' && npm run dev\"" 2>/dev/null || \
+# Backend - tsx watch (hot reload)
+osascript -e "tell application \"Terminal\" to do script \"cd '$root/back-server' && echo '[BACKEND] Starting on http://localhost:8000' && npm run dev\"" 2>/dev/null || \
     (cd "$root/back-server" && npm run dev &)
 
-# Frontend — Vite dev server
-osascript -e "tell application \"Terminal\" to do script \"cd '$root' && echo '[FRONTEND] Iniciando Vite dev server...' && npm run dev\"" 2>/dev/null || \
+# Frontend - Vite dev server
+osascript -e "tell application \"Terminal\" to do script \"cd '$root' && echo '[FRONTEND] Starting Vite dev server...' && npm run dev\"" 2>/dev/null || \
     (cd "$root" && npm run dev &)
 
 echo ""
-echo "Dois processos iniciados:"
-echo "  Backend  → http://192.168.1.3:8000"
-echo "  Frontend → http://192.168.1.3:5173  (ou porta indicada pelo Vite)"
+echo "Two processes started:"
+echo "  Backend  -> http://localhost:8000"
+echo "  Frontend -> http://localhost:5173 (or port shown by Vite)"
 echo ""
-echo "Proxy do Vite repassa /api/* para o backend automaticamente."
-echo "DATABASE_URL carregada via --env-file=../.env (embutido em npm run dev)."
+echo "Vite proxy forwards /api/* to backend automatically."
