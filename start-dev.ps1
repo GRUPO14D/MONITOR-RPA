@@ -5,7 +5,12 @@ $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Write-Host "Iniciando MONITOR-RPA em modo DEV..." -ForegroundColor Cyan
 
-# Backend — tsx watch (hot reload)
+# Verifica .env
+if (-not (Test-Path "$root\.env")) {
+    Write-Host "AVISO: .env nao encontrado — crie o arquivo com DATABASE_URL antes de continuar." -ForegroundColor DarkYellow
+}
+
+# Backend — tsx watch (hot reload) com --env-file=../.env embutido no npm run dev
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
@@ -25,3 +30,4 @@ Write-Host "  Backend  → http://192.168.1.3:8000" -ForegroundColor Green
 Write-Host "  Frontend → http://192.168.1.3:5173  (ou porta indicada pelo Vite)" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Proxy do Vite repassa /api/* para o backend automaticamente." -ForegroundColor Gray
+Write-Host "DATABASE_URL carregada via --env-file=../.env (embutido em npm run dev)." -ForegroundColor Gray

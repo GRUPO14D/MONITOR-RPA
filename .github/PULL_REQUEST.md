@@ -1,17 +1,36 @@
 # Pull Request
 
-## Sumario
-- 
+## Contexto
 
-## Mudancas
-- 
+<!-- Por que essa mudanca e necessaria? Qual problema resolve? -->
 
-## Testes
-- Nao Testado (Porque): 
-- Testado: 
+## Commits incluidos
+
+<!-- Liste os commits com tipo e resumo -->
+
+| Commit | Tipo | Descricao |
+|--------|------|-----------|
+|        |      |           |
+
+## Mudancas por arquivo
+
+<!-- Liste os arquivos principais alterados e o que mudou em cada um -->
+
+## Como testar
+
+<!-- Passos para validar as mudancas -->
+
+1.
+2.
+
+## Testes realizados
+
+- [ ] Testado localmente
+- [ ] Nao testado (motivo: )
 
 ## Checklist
-- [ ] I have kept changes focused and small
-- [ ] Atualizei a documentacao (Se aplicado)
-- [ ] Adicionei ou atualizei algum teste (Se aplicado)
-- [ ] Expliquei o porque nao rodei testes (Se aplicado)
+
+- [ ] Mudancas focadas e dentro do escopo desta PR
+- [ ] Sem codigo comentado ou debug deixado para tras
+- [ ] Variaveis de ambiente documentadas no .env.example (se aplicavel)
+- [ ] Documentacao atualizada (se aplicavel)
